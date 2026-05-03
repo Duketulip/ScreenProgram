@@ -27,7 +27,7 @@
             <TextBlock Text="转场类型:" VerticalAlignment="Center" FontSize="11"/>
             <ComboBox Grid.Column="1" x:Name="TransitionTypeBox" FontSize="11" Height="24">
                 <ComboBoxItem Content="淡入淡出 (Fade)" Tag="Fade" IsSelected="True"/>
-                <ComboBoxItem Content="直接切换 (Crossfade)" Tag="Crossfade"/>
+                <ComboBoxItem Content="直接切换 (Direct)" Tag="Direct"/>
             </ComboBox>
         </Grid>
 

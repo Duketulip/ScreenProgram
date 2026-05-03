@@ -313,7 +313,7 @@ namespace ShowPlayer.App.ViewModels
 
         private void OnShowContentLoaded(PlaylistItem item)
         {
-            if (item.Type == MediaType.Image)
+            if (item == NowPlayingItem && item.Type == MediaType.Image)
                 _playbackController.PlayMusicForCurrent();
         }
 
@@ -514,12 +514,18 @@ namespace ShowPlayer.App.ViewModels
                 case Key.Space: _playbackController.Next(); return true;
                 case Key.Left:
                     if (IsNowPlayingVideo)
+                    {
                         _playbackController.SeekVideo(Math.Max(0, _playbackController.GetVideoTime() - 5000));
-                    return true;
+                        return true;
+                    }
+                    return false;
                 case Key.Right:
                     if (IsNowPlayingVideo)
+                    {
                         _playbackController.SeekVideo(_playbackController.GetVideoTime() + 5000);
-                    return true;
+                        return true;
+                    }
+                    return false;
             }
             return false;
         }

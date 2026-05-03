@@ -21,6 +21,8 @@ namespace ShowPlayer.App
         private int _transitionDurationMs = 500;
         private bool _isTransitioning;
         private PlaylistItem? _pendingItem;
+        private int _transitionVersion;
+        private bool _forceClose;
 
         public event Action<PlaylistItem>? ContentLoaded;
 
@@ -49,8 +51,6 @@ namespace ShowPlayer.App
 
         public void TransitionTo(PlaylistItem item)
         {
-            TitleFileName.Text = item.DisplayName;
-
             if (_isTransitioning)
             {
                 _pendingItem = item;
@@ -58,12 +58,16 @@ namespace ShowPlayer.App
             }
             _isTransitioning = true;
             _pendingItem = null;
+            var version = ++_transitionVersion;
+            TitleFileName.Text = item.DisplayName;
 
             var duration = TimeSpan.FromMilliseconds(_transitionDurationMs);
             var fadeToBlack = new DoubleAnimation(0, 1, duration);
 
             fadeToBlack.Completed += (s, e) =>
             {
+                if (version != _transitionVersion) return;
+
                 ClearContent();
                 LoadContent(item);
                 ContentLoaded?.Invoke(item);
@@ -71,14 +75,11 @@ namespace ShowPlayer.App
                 var fadeFromBlack = new DoubleAnimation(1, 0, duration);
                 fadeFromBlack.Completed += (s2, e2) =>
                 {
+                    if (version != _transitionVersion) return;
+
                     FadeOverlay.Opacity = 0;
                     _isTransitioning = false;
-                    if (_pendingItem != null)
-                    {
-                        var next = _pendingItem;
-                        _pendingItem = null;
-                        TransitionTo(next);
-                    }
+                    ProcessPendingTransition();
                 };
                 FadeOverlay.BeginAnimation(OpacityProperty, fadeFromBlack);
             };
@@ -90,17 +91,21 @@ namespace ShowPlayer.App
                 LoadContent(item);
                 ContentLoaded?.Invoke(item);
                 _isTransitioning = false;
-                if (_pendingItem != null)
-                {
-                    var next = _pendingItem;
-                    _pendingItem = null;
-                    TransitionTo(next);
-                }
+                ProcessPendingTransition();
             }
             else
             {
                 FadeOverlay.BeginAnimation(OpacityProperty, fadeToBlack);
             }
+        }
+
+        private void ProcessPendingTransition()
+        {
+            if (_pendingItem == null) return;
+
+            var next = _pendingItem;
+            _pendingItem = null;
+            TransitionTo(next);
         }
 
         private void LoadContent(PlaylistItem item)
@@ -134,14 +139,15 @@ namespace ShowPlayer.App
 
         public void Stop()
         {
+            CancelTransition();
             ClearContent();
             FadeOverlay.Opacity = 0;
-            _isTransitioning = false;
             TitleFileName.Text = "";
         }
 
         public void ShowDefaultImage(string? imagePath)
         {
+            CancelTransition();
             ClearContent();
             if (string.IsNullOrEmpty(imagePath))
             {
@@ -183,6 +189,15 @@ namespace ShowPlayer.App
             ContentVideo.Visibility = Visibility.Collapsed;
         }
 
+        private void CancelTransition()
+        {
+            _transitionVersion++;
+            _pendingItem = null;
+            _isTransitioning = false;
+            FadeOverlay.BeginAnimation(OpacityProperty, null);
+            FadeOverlay.Opacity = 0;
+        }
+
         private void OnContentDoubleClick(object sender, MouseButtonEventArgs e)
         {
             ToggleFullscreen();
@@ -212,10 +227,18 @@ namespace ShowPlayer.App
 
         protected override void OnClosing(CancelEventArgs e)
         {
+            if (_forceClose) return;
+
             if (Application.Current.MainWindow == this || Application.Current.MainWindow?.IsVisible == false)
                 return;
             e.Cancel = true;
             WindowState = WindowState.Minimized;
+        }
+
+        public void ForceClose()
+        {
+            _forceClose = true;
+            Close();
         }
 
         private void OnPreviewMouseMove(object sender, MouseEventArgs e)

@@ -130,6 +130,7 @@ namespace ShowPlayer.App.Services
                 }
 
                 var json = File.ReadAllText(SettingsPath);
+                json = json.Replace("\"Crossfade\"", "\"Direct\"");
                 var dto = JsonSerializer.Deserialize<SettingsDto>(json, JsonOptions);
                 if (dto == null) return new AppSettings();
 

@@ -124,7 +124,7 @@ namespace ShowPlayer.App {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/ShowPlayer.App;component/showwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/ShowPlayer.App;V1.0.0.0;component/showwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\ShowWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

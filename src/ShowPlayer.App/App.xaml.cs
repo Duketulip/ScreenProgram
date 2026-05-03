@@ -28,6 +28,7 @@ namespace ShowPlayer.App
 
             _mediaPlayer = new VlcMediaPlayer();
             _mediaPlayer.SetVideoVolume(_appSettings.VideoVolume);
+            _mediaPlayer.SetMusicVolume(_appSettings.MusicVolume);
 
             _playbackController = new PlaybackController(playlistManager, _mediaPlayer);
 
@@ -58,7 +59,7 @@ namespace ShowPlayer.App
         {
             _playbackController.Stop();
             _mediaPlayer.Dispose();
-            _showWindow.Close();
+            _showWindow.ForceClose();
             base.OnExit(e);
         }
     }

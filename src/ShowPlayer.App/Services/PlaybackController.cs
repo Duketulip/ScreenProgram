@@ -53,7 +53,14 @@ namespace ShowPlayer.App.Services
             if (item.IsMissing)
             {
                 Logger.Warning($"跳过缺失文件: {item.FilePath}");
-                PlayItem((index + 1) % _playlistManager.Items.Count, attempt + 1);
+                var nextIndex = index + 1;
+                if (nextIndex >= _playlistManager.Items.Count)
+                {
+                    Stop();
+                    return;
+                }
+
+                PlayItem(nextIndex, attempt + 1);
                 return;
             }
 

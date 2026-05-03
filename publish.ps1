@@ -4,6 +4,7 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
 $ProjectDir = Join-Path $PSScriptRoot "src\ShowPlayer.App"
+$ProjectPath = Join-Path $ProjectDir "ShowPlayer.App.csproj"
 $PublishDir = Join-Path $ProjectDir "bin\publish"
 $ZipPath = Join-Path $PSScriptRoot "ShowPlayer_v1.0.0.zip"
 
@@ -18,14 +19,14 @@ Remove-Item -Path (Join-Path $ProjectDir "obj") -Recurse -Force -ErrorAction Sil
 Remove-Item -Path (Join-Path $ProjectDir "bin") -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "[2/4] 还原依赖..." -ForegroundColor Yellow
-Push-Location $ProjectDir
-dotnet restore --nologo -q
+Push-Location $PSScriptRoot
+dotnet restore $ProjectPath --nologo -q
 if ($LASTEXITCODE -ne 0) { Pop-Location; Write-Host ""; Write-Host "[错误] 还原失败！" -ForegroundColor Red; pause; exit 1 }
 Pop-Location
 
 Write-Host "[3/4] 执行自包含发布..." -ForegroundColor Yellow
-Push-Location $ProjectDir
-dotnet publish `
+Push-Location $PSScriptRoot
+dotnet publish $ProjectPath `
   --configuration Release `
   --runtime win-x64 `
   --self-contained true `

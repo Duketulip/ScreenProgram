@@ -13,6 +13,7 @@ namespace ShowPlayer.App.Services
         private int _musicVolume = 80;
         private string? _currentMusicPath;
         private bool _currentMusicLoop;
+        private int _musicGeneration;
 
         public MediaPlayer VideoPlayer => _videoPlayer;
 
@@ -109,6 +110,7 @@ namespace ShowPlayer.App.Services
 
             _currentMusicPath = filePath;
             _currentMusicLoop = loop;
+            Interlocked.Increment(ref _musicGeneration);
 
             _musicPlayer = new MediaPlayer(_libVlc);
             _musicPlayer.EndReached += OnMusicEndReached;
@@ -146,6 +148,10 @@ namespace ShowPlayer.App.Services
 
         public void StopMusicImmediate()
         {
+            Interlocked.Increment(ref _musicGeneration);
+            _currentMusicPath = null;
+            _currentMusicLoop = false;
+
             _fadeTimer?.Stop();
             _fadeTimer?.Dispose();
             _fadeTimer = null;
@@ -163,9 +169,10 @@ namespace ShowPlayer.App.Services
 
             _musicPlayer.Volume = 0;
             var targetVolume = _musicVolume;
-            var currentVolume = 0;
+            var currentVolume = 0.0;
             var steps = 30;
             var intervalMs = 100;
+            var increment = targetVolume / (double)steps;
 
             _fadeTimer = new System.Timers.Timer(intervalMs);
             _fadeTimer.Elapsed += (s, e) =>
@@ -178,13 +185,13 @@ namespace ShowPlayer.App.Services
                         return;
                     }
 
-                    currentVolume += targetVolume / steps;
+                    currentVolume += increment;
                     if (currentVolume >= targetVolume)
                     {
                         currentVolume = targetVolume;
                         _fadeTimer.Stop();
                     }
-                    _musicPlayer.Volume = currentVolume;
+                    _musicPlayer.Volume = (int)Math.Round(currentVolume);
                 }
                 catch
                 {
@@ -205,7 +212,7 @@ namespace ShowPlayer.App.Services
             _fadeTimer?.Stop();
             _fadeTimer?.Dispose();
 
-            var currentVolume = _musicPlayer.Volume;
+            var currentVolume = (double)_musicPlayer.Volume;
             var steps = 30;
             var intervalMs = 100;
             var decrement = currentVolume / (double)steps;
@@ -222,14 +229,14 @@ namespace ShowPlayer.App.Services
                         return;
                     }
 
-                    currentVolume -= (int)decrement;
+                    currentVolume -= decrement;
                     if (currentVolume <= 0)
                     {
                         currentVolume = 0;
                         _fadeTimer.Stop();
                         onComplete?.Invoke();
                     }
-                    _musicPlayer.Volume = currentVolume;
+                    _musicPlayer.Volume = (int)Math.Round(currentVolume);
                 }
                 catch
                 {
@@ -257,14 +264,25 @@ namespace ShowPlayer.App.Services
 
         private void OnMusicEndReached(object? sender, EventArgs e)
         {
-            if (_currentMusicLoop && !string.IsNullOrEmpty(_currentMusicPath))
+            var path = _currentMusicPath;
+            var loop = _currentMusicLoop;
+            var generation = _musicGeneration;
+
+            if (loop && !string.IsNullOrEmpty(path))
             {
-                try
+                _ = Task.Run(async () =>
                 {
-                    StopMusicImmediate();
-                    PlayMusic(_currentMusicPath, _currentMusicLoop);
-                }
-                catch { }
+                    try
+                    {
+                        await Task.Delay(50).ConfigureAwait(false);
+                        if (_disposed || generation != _musicGeneration) return;
+
+                        StopMusicImmediate();
+                        if (_disposed || generation != _musicGeneration - 1) return;
+                        PlayMusic(path, true);
+                    }
+                    catch { }
+                });
             }
             else
             {
