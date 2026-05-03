@@ -871,6 +871,7 @@ E:\AIstudio\ScreenProgram\src\ShowPlayer.App\obj\Debug\net8.0-windows\ShowPlayer
 E:\AIstudio\ScreenProgram\src\ShowPlayer.App\obj\Debug\net8.0-windows\ShowPlayer.App.AssemblyInfoInputs.cache
 E:\AIstudio\ScreenProgram\src\ShowPlayer.App\obj\Debug\net8.0-windows\ShowPlayer.App.AssemblyInfo.cs
 E:\AIstudio\ScreenProgram\src\ShowPlayer.App\obj\Debug\net8.0-windows\ShowPlayer.App.csproj.CoreCompileInputs.cache
+E:\AIstudio\ScreenProgram\src\ShowPlayer.App\obj\Debug\net8.0-windows\ShowPlayer.App.sourcelink.json
 E:\AIstudio\ScreenProgram\src\ShowPlayer.App\obj\Debug\net8.0-windows\ShowPlay.77CDA005.Up2Date
 E:\AIstudio\ScreenProgram\src\ShowPlayer.App\obj\Debug\net8.0-windows\ShowPlayer.App.dll
 E:\AIstudio\ScreenProgram\src\ShowPlayer.App\obj\Debug\net8.0-windows\refint\ShowPlayer.App.dll

@@ -1,2 +1,26 @@
 /debug.log
 /ShowPlayer_v1.0.0.zip
+
+# .NET build artifacts
+**/bin/
+**/obj/
+
+# VS user files
+*.user
+*.suo
+*.sln.docstates
+.vs/
+
+# NuGet
+**/packages/
+*.nupkg
+
+# Publish output
+src/ShowPlayer.App/bin/publish/
+
+# VLC native libraries (deployment dependency, not source)
+**/libvlc/
+
+# IDE
+.idea/
+*.swp

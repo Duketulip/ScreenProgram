@@ -107,7 +107,7 @@ namespace ShowPlayer.App.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/ShowPlayer.App;V1.0.0.0;component/views/settingsdialog.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/ShowPlayer.App;component/views/settingsdialog.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\SettingsDialog.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

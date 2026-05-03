@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ShowPlayer.App")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c5612c48ede6f415d792e51f257943cb21ad9569")]
 [assembly: System.Reflection.AssemblyProductAttribute("ShowPlayer.App")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ShowPlayer.App")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

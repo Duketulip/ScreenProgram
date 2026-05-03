@@ -10,6 +10,9 @@ namespace ShowPlayer.App.Services
         private MediaPlayer? _musicPlayer;
         private System.Timers.Timer? _fadeTimer;
         private bool _disposed;
+        private int _musicVolume = 80;
+        private string? _currentMusicPath;
+        private bool _currentMusicLoop;
 
         public MediaPlayer VideoPlayer => _videoPlayer;
 
@@ -77,12 +80,13 @@ namespace ShowPlayer.App.Services
             _videoPlayer.Volume = Math.Clamp(volume, 0, 100);
         }
 
-        public int GetMusicVolume() => _musicPlayer?.Volume ?? 0;
+        public int GetMusicVolume() => _musicVolume;
 
         public void SetMusicVolume(int volume)
         {
+            _musicVolume = Math.Clamp(volume, 0, 100);
             if (_musicPlayer != null)
-                _musicPlayer.Volume = Math.Clamp(volume, 0, 100);
+                _musicPlayer.Volume = _musicVolume;
         }
 
         public bool IsMusicPlaying => _musicPlayer?.IsPlaying ?? false;
@@ -102,6 +106,9 @@ namespace ShowPlayer.App.Services
         public void PlayMusic(string filePath, bool loop, Action? onReady = null)
         {
             StopMusic();
+
+            _currentMusicPath = filePath;
+            _currentMusicLoop = loop;
 
             _musicPlayer = new MediaPlayer(_libVlc);
             _musicPlayer.EndReached += OnMusicEndReached;
@@ -155,7 +162,7 @@ namespace ShowPlayer.App.Services
             _fadeTimer?.Dispose();
 
             _musicPlayer.Volume = 0;
-            var targetVolume = 100;
+            var targetVolume = _musicVolume;
             var currentVolume = 0;
             var steps = 30;
             var intervalMs = 100;
@@ -250,7 +257,19 @@ namespace ShowPlayer.App.Services
 
         private void OnMusicEndReached(object? sender, EventArgs e)
         {
-            MusicPlaybackCompleted?.Invoke(this, EventArgs.Empty);
+            if (_currentMusicLoop && !string.IsNullOrEmpty(_currentMusicPath))
+            {
+                try
+                {
+                    StopMusicImmediate();
+                    PlayMusic(_currentMusicPath, _currentMusicLoop);
+                }
+                catch { }
+            }
+            else
+            {
+                MusicPlaybackCompleted?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         public void Dispose()
@@ -261,10 +280,17 @@ namespace ShowPlayer.App.Services
             _fadeTimer?.Stop();
             _fadeTimer?.Dispose();
 
-            StopMusicImmediate();
-            _videoPlayer.Stop();
             _videoPlayer.EndReached -= OnVideoEndReached;
+            _videoPlayer.Stop();
             _videoPlayer.Dispose();
+
+            if (_musicPlayer != null)
+            {
+                _musicPlayer.EndReached -= OnMusicEndReached;
+                _musicPlayer.Stop();
+                _musicPlayer.Dispose();
+            }
+
             _libVlc.Dispose();
         }
     }

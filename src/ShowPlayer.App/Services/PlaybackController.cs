@@ -31,6 +31,18 @@ namespace ShowPlayer.App.Services
 
         public void PlayItem(int index)
         {
+            PlayItem(index, 0);
+        }
+
+        private void PlayItem(int index, int attempt)
+        {
+            if (attempt >= _playlistManager.Items.Count)
+            {
+                Logger.Warning("所有文件均缺失或无效，停止播放");
+                Stop();
+                return;
+            }
+
             if (index < 0 || index >= _playlistManager.Items.Count)
             {
                 Stop();
@@ -41,6 +53,7 @@ namespace ShowPlayer.App.Services
             if (item.IsMissing)
             {
                 Logger.Warning($"跳过缺失文件: {item.FilePath}");
+                PlayItem((index + 1) % _playlistManager.Items.Count, attempt + 1);
                 return;
             }
 

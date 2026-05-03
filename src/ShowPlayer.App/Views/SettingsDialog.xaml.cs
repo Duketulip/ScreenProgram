@@ -33,7 +33,7 @@ namespace ShowPlayer.App.Views
         private void OnOk(object sender, RoutedEventArgs e)
         {
             _settings.TransitionType = TransitionTypeBox.SelectedIndex == 0
-                ? TransitionType.Fade : TransitionType.Crossfade;
+                ? TransitionType.Fade : TransitionType.Direct;
             _settings.TransitionDurationMs = (int)DurationSlider.Value;
             _settings.VideoVolume = (int)VideoVolumeSlider.Value;
             _settings.MusicVolume = (int)MusicVolumeSlider.Value;

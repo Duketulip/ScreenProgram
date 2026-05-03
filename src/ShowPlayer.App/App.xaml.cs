@@ -16,6 +16,8 @@ namespace ShowPlayer.App
         {
             base.OnStartup(e);
 
+            ShutdownMode = ShutdownMode.OnMainWindowClose;
+
             var persistence = new PlaylistPersistence();
             _appSettings = persistence.LoadSettings();
 
@@ -48,7 +50,16 @@ namespace ShowPlayer.App
             };
 
             var mainWindow = new MainWindow(viewModel);
+            MainWindow = mainWindow;
             mainWindow.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _playbackController.Stop();
+            _mediaPlayer.Dispose();
+            _showWindow.Close();
+            base.OnExit(e);
         }
     }
 }

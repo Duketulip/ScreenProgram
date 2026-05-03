@@ -6,7 +6,7 @@
         WindowStyle="None"
         Background="Black"
         WindowState="Normal"
-        ShowInTaskbar="False"
+        ShowInTaskbar="True"
         Topmost="False"
         ResizeMode="CanResizeWithGrip"
         Width="960" Height="540"
@@ -50,9 +50,9 @@
                 <Button Grid.Column="4" Content="⎯" Width="26" Height="22" FontSize="11"
                         Foreground="#AAA" Background="Transparent" BorderThickness="0" Cursor="Hand"
                         ToolTip="最小化" Click="OnMinimize" Margin="2,0"/>
-                <Button Grid.Column="5" Content="✕" Width="26" Height="22" FontSize="11"
+                <Button Grid.Column="5" Content="⎯" Width="26" Height="22" FontSize="11"
                         Foreground="#CCC" Background="Transparent" BorderThickness="0" Cursor="Hand"
-                        ToolTip="关闭展示窗口" Click="OnCloseWindow" Margin="2,0"/>
+                        ToolTip="最小化到托盘" Click="OnMinimize" Margin="2,0"/>
             </Grid>
         </Border>
 

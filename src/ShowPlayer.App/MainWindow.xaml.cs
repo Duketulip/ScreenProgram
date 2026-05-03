@@ -29,7 +29,8 @@ namespace ShowPlayer.App
         private void OnPreviewKeyDown(object sender, KeyEventArgs e)
         {
             var ctrl = (Keyboard.Modifiers & ModifierKeys.Control) != 0;
-            _viewModel.HandleKeyDown(e.Key, ctrl);
+            if (_viewModel.HandleKeyDown(e.Key, ctrl))
+                e.Handled = true;
         }
 
         private void OnSliderPreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -60,6 +61,25 @@ namespace ShowPlayer.App
         {
             _dragStartPoint = e.GetPosition(null);
             _isDragging = false;
+
+            if (sender is ListBox listBox && e.OriginalSource is DependencyObject source)
+            {
+                var listBoxItem = FindAncestor<ListBoxItem>(source);
+                if (listBoxItem != null)
+                {
+                    listBox.SelectedItem = listBoxItem.DataContext;
+                }
+            }
+        }
+
+        private static T? FindAncestor<T>(DependencyObject? child) where T : DependencyObject
+        {
+            while (child != null)
+            {
+                if (child is T t) return t;
+                child = System.Windows.Media.VisualTreeHelper.GetParent(child);
+            }
+            return null;
         }
 
         private void OnListBoxPreviewMouseMove(object sender, MouseEventArgs e)

@@ -4,11 +4,18 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
 $ProjectDir = Join-Path $PSScriptRoot "src\ShowPlayer.App"
-
 Push-Location $ProjectDir
 
+Write-Host "[清理] 释放文件锁..." -ForegroundColor DarkGray
+Get-Process -Name "ShowPlayer.App" -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep 2
+
+Write-Host "[清理] 删除编译缓存..." -ForegroundColor DarkGray
+Remove-Item -Path "obj" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "bin" -Recurse -Force -ErrorAction SilentlyContinue
+
 Write-Host "[1/2] 正在编译项目..." -ForegroundColor Yellow
-dotnet build --nologo -q
+dotnet build --nologo
 if ($LASTEXITCODE -ne 0) {
     Pop-Location
     Write-Host ""

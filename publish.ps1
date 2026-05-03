@@ -2,18 +2,28 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  会场大屏播放控制软件 - 发布打包" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "目标: 生成免安装绿色包，解压即用" -ForegroundColor Gray
-Write-Host ""
 
 $ProjectDir = Join-Path $PSScriptRoot "src\ShowPlayer.App"
 $PublishDir = Join-Path $ProjectDir "bin\publish"
 $ZipPath = Join-Path $PSScriptRoot "ShowPlayer_v1.0.0.zip"
 
-Write-Host "[1/3] 清理旧发布..." -ForegroundColor Yellow
+Write-Host "[清理] 释放文件锁..." -ForegroundColor DarkGray
+Get-Process -Name "ShowPlayer.App" -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep 2
+
+Write-Host "[1/4] 清理旧发布..." -ForegroundColor Yellow
 if (Test-Path $PublishDir) { Remove-Item -Path $PublishDir -Recurse -Force }
 if (Test-Path $ZipPath) { Remove-Item $ZipPath -Force }
+Remove-Item -Path (Join-Path $ProjectDir "obj") -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path (Join-Path $ProjectDir "bin") -Recurse -Force -ErrorAction SilentlyContinue
 
-Write-Host "[2/3] 执行自包含发布..." -ForegroundColor Yellow
+Write-Host "[2/4] 还原依赖..." -ForegroundColor Yellow
+Push-Location $ProjectDir
+dotnet restore --nologo -q
+if ($LASTEXITCODE -ne 0) { Pop-Location; Write-Host ""; Write-Host "[错误] 还原失败！" -ForegroundColor Red; pause; exit 1 }
+Pop-Location
+
+Write-Host "[3/4] 执行自包含发布..." -ForegroundColor Yellow
 Push-Location $ProjectDir
 dotnet publish `
   --configuration Release `
@@ -33,7 +43,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 Pop-Location
 
-Write-Host "[3/3] 打包为 ZIP ..." -ForegroundColor Yellow
+Write-Host "[4/4] 打包为 ZIP ..." -ForegroundColor Yellow
 Compress-Archive -Path "$PublishDir\*" -DestinationPath $ZipPath -Force
 
 $ZipSize = (Get-Item $ZipPath).Length / 1MB

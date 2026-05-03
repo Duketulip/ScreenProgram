@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
@@ -19,6 +20,9 @@ namespace ShowPlayer.App
         private TransitionType _transitionType = TransitionType.Fade;
         private int _transitionDurationMs = 500;
         private bool _isTransitioning;
+        private PlaylistItem? _pendingItem;
+
+        public event Action<PlaylistItem>? ContentLoaded;
 
         public ShowWindow()
         {
@@ -47,8 +51,13 @@ namespace ShowPlayer.App
         {
             TitleFileName.Text = item.DisplayName;
 
-            if (_isTransitioning) return;
+            if (_isTransitioning)
+            {
+                _pendingItem = item;
+                return;
+            }
             _isTransitioning = true;
+            _pendingItem = null;
 
             var duration = TimeSpan.FromMilliseconds(_transitionDurationMs);
             var fadeToBlack = new DoubleAnimation(0, 1, duration);
@@ -57,22 +66,36 @@ namespace ShowPlayer.App
             {
                 ClearContent();
                 LoadContent(item);
+                ContentLoaded?.Invoke(item);
 
                 var fadeFromBlack = new DoubleAnimation(1, 0, duration);
                 fadeFromBlack.Completed += (s2, e2) =>
                 {
                     FadeOverlay.Opacity = 0;
                     _isTransitioning = false;
+                    if (_pendingItem != null)
+                    {
+                        var next = _pendingItem;
+                        _pendingItem = null;
+                        TransitionTo(next);
+                    }
                 };
                 FadeOverlay.BeginAnimation(OpacityProperty, fadeFromBlack);
             };
 
-            if (_transitionType == TransitionType.Crossfade)
+            if (_transitionType == TransitionType.Direct)
             {
                 FadeOverlay.Opacity = 0;
                 ClearContent();
                 LoadContent(item);
+                ContentLoaded?.Invoke(item);
                 _isTransitioning = false;
+                if (_pendingItem != null)
+                {
+                    var next = _pendingItem;
+                    _pendingItem = null;
+                    TransitionTo(next);
+                }
             }
             else
             {
@@ -120,7 +143,17 @@ namespace ShowPlayer.App
         public void ShowDefaultImage(string? imagePath)
         {
             ClearContent();
-            if (string.IsNullOrEmpty(imagePath)) return;
+            if (string.IsNullOrEmpty(imagePath))
+            {
+                Logger.Info("未设置默认闲置图片，展示黑屏");
+                return;
+            }
+
+            if (!System.IO.File.Exists(imagePath))
+            {
+                Logger.Warning($"默认闲置图片文件不存在: {imagePath}");
+                return;
+            }
 
             ContentVideo.Visibility = Visibility.Collapsed;
             ContentImage.Visibility = Visibility.Visible;
@@ -133,9 +166,11 @@ namespace ShowPlayer.App
                 bitmap.UriSource = new Uri(imagePath);
                 bitmap.EndInit();
                 ContentImage.Source = bitmap;
+                Logger.Info($"已加载默认闲置图片: {imagePath}");
             }
-            catch
+            catch (Exception ex)
             {
+                Logger.Error($"加载默认闲置图片失败: {imagePath}", ex);
                 ContentImage.Source = null;
             }
         }
@@ -175,8 +210,11 @@ namespace ShowPlayer.App
             WindowState = WindowState.Minimized;
         }
 
-        private void OnCloseWindow(object sender, RoutedEventArgs e)
+        protected override void OnClosing(CancelEventArgs e)
         {
+            if (Application.Current.MainWindow == this || Application.Current.MainWindow?.IsVisible == false)
+                return;
+            e.Cancel = true;
             WindowState = WindowState.Minimized;
         }
 
@@ -195,6 +233,23 @@ namespace ShowPlayer.App
             else EnterFullscreen();
         }
 
+        private static System.Windows.Rect GetCurrentScreenBounds(Window window)
+        {
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(window).Handle;
+            var monitor = NativeMethods.MonitorFromWindow(hwnd, 2); // MONITOR_DEFAULTTONEAREST
+            var info = new NativeMethods.MONITORINFO();
+            info.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(info);
+            if (NativeMethods.GetMonitorInfo(monitor, ref info))
+            {
+                return new System.Windows.Rect(
+                    info.rcMonitor.Left, info.rcMonitor.Top,
+                    info.rcMonitor.Right - info.rcMonitor.Left,
+                    info.rcMonitor.Bottom - info.rcMonitor.Top);
+            }
+            return new System.Windows.Rect(0, 0,
+                SystemParameters.PrimaryScreenWidth, SystemParameters.PrimaryScreenHeight);
+        }
+
         private void EnterFullscreen()
         {
             _isFullscreen = true;
@@ -203,12 +258,15 @@ namespace ShowPlayer.App
             _previousWidth = Width;
             _previousHeight = Height;
 
+            var bounds = GetCurrentScreenBounds(this);
+
             WindowStyle = WindowStyle.None;
             ResizeMode = ResizeMode.NoResize;
             Topmost = true;
-            Left = 0; Top = 0;
-            Width = SystemParameters.PrimaryScreenWidth;
-            Height = SystemParameters.PrimaryScreenHeight;
+            Left = bounds.Left;
+            Top = bounds.Top;
+            Width = bounds.Width;
+            Height = bounds.Height;
             ContentBorder.Margin = new Thickness(0);
             TitleBar.Visibility = Visibility.Collapsed;
             FullscreenHint.Visibility = Visibility.Visible;
@@ -233,18 +291,45 @@ namespace ShowPlayer.App
             ContentBorder.Margin = new Thickness(0, 32, 0, 0);
             TitleBar.Visibility = Visibility.Visible;
             FullscreenHint.Visibility = Visibility.Collapsed;
-            ShowInTaskbar = false;
+            ShowInTaskbar = true;
         }
 
         public void EnsureVisible()
         {
-            if (WindowState == WindowState.Minimized)
-                WindowState = WindowState.Normal;
             if (!IsVisible)
                 Show();
+            if (WindowState == WindowState.Minimized)
+                WindowState = WindowState.Normal;
             Activate();
         }
 
         public bool IsShowWindowVisible => IsVisible && WindowState != WindowState.Minimized;
+    }
+
+    internal static class NativeMethods
+    {
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        internal static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        internal static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        internal const int CCHDEVICENAME = 32;
+
+        internal struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        internal struct MONITORINFO
+        {
+            public int cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
     }
 }

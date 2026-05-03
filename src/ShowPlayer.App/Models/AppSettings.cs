@@ -6,7 +6,7 @@ namespace ShowPlayer.App.Models
     public enum TransitionType
     {
         Fade,
-        Crossfade
+        Direct
     }
 
     public class AppSettings : INotifyPropertyChanged

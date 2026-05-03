@@ -58,7 +58,11 @@ namespace ShowPlayer.App.ViewModels
             set
             {
                 if (_nowPlayingItem != null && _nowPlayingItem != value)
+                {
                     _nowPlayingItem.IsNowPlaying = false;
+                    OnPropertyChanged(nameof(IsNowPlayingVideo));
+                    OnPropertyChanged(nameof(IsNowPlayingImage));
+                }
                 _nowPlayingItem = value;
                 if (_nowPlayingItem != null)
                     _nowPlayingItem.IsNowPlaying = true;
@@ -66,6 +70,8 @@ namespace ShowPlayer.App.ViewModels
                 OnPropertyChanged(nameof(ShowNowPlayingInfo));
                 OnPropertyChanged(nameof(NowPlayingDisplayName));
                 OnPropertyChanged(nameof(NowPlayingTypeText));
+                OnPropertyChanged(nameof(IsNowPlayingVideo));
+                OnPropertyChanged(nameof(IsNowPlayingImage));
                 OnPropertyChanged(nameof(ShowSelectedPlayButton));
                 ResetVideoProgress();
             }
@@ -181,12 +187,12 @@ namespace ShowPlayer.App.ViewModels
 
         public string TransitionDurationText => $"{_appSettings.TransitionDurationMs}ms";
 
-        public bool UseCrossfade
+        public bool UseDirectTransition
         {
-            get => _appSettings.TransitionType == TransitionType.Crossfade;
+            get => _appSettings.TransitionType == TransitionType.Direct;
             set
             {
-                _appSettings.TransitionType = value ? TransitionType.Crossfade : TransitionType.Fade;
+                _appSettings.TransitionType = value ? TransitionType.Direct : TransitionType.Fade;
                 OnPropertyChanged();
             }
         }
@@ -260,6 +266,7 @@ namespace ShowPlayer.App.ViewModels
             _playbackController.ItemStarted += OnItemStarted;
             _playbackController.PlaybackStopped += OnPlaybackStopped;
             _playbackController.MediaEnded += OnMediaEnded;
+            _showWindow.ContentLoaded += OnShowContentLoaded;
 
             AddFilesCommand = new RelayCommand(OnAddFiles);
             RemoveItemCommand = new RelayCommand(OnRemoveItem);
@@ -294,13 +301,20 @@ namespace ShowPlayer.App.ViewModels
             OnPropertyChanged(nameof(ShowSelectedPlayButton));
 
             if (item.Type == MediaType.Video)
+            {
                 _positionTimer.Start();
+            }
             else
             {
                 _positionTimer.Stop();
                 ResetVideoProgress();
-                _playbackController.PlayMusicForCurrent();
             }
+        }
+
+        private void OnShowContentLoaded(PlaylistItem item)
+        {
+            if (item.Type == MediaType.Image)
+                _playbackController.PlayMusicForCurrent();
         }
 
         private void OnPlaybackStopped(object? sender, EventArgs e)
@@ -492,21 +506,22 @@ namespace ShowPlayer.App.ViewModels
             MessageBox.Show(msg, "快捷键说明", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        public void HandleKeyDown(Key key, bool ctrl)
+        public bool HandleKeyDown(Key key, bool ctrl)
         {
-            if (ctrl && key == Key.P) { OnPauseResume(null); return; }
+            if (ctrl && key == Key.P) { OnPauseResume(null); return true; }
             switch (key)
             {
-                case Key.Space: _playbackController.Next(); break;
+                case Key.Space: _playbackController.Next(); return true;
                 case Key.Left:
                     if (IsNowPlayingVideo)
                         _playbackController.SeekVideo(Math.Max(0, _playbackController.GetVideoTime() - 5000));
-                    break;
+                    return true;
                 case Key.Right:
                     if (IsNowPlayingVideo)
                         _playbackController.SeekVideo(_playbackController.GetVideoTime() + 5000);
-                    break;
+                    return true;
             }
+            return false;
         }
 
         private static bool IsImageFile(string path)
