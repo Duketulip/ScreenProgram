@@ -1,0 +1,15 @@
+<Application x:Class="ShowPlayer.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:ShowPlayer.App.ViewModels">
+    <Application.Resources>
+        <local:MissingBorderConverter x:Key="MissingBorderConverter"/>
+        <local:MissingForegroundConverter x:Key="MissingForegroundConverter"/>
+        <local:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <local:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <local:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
+        <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <local:InverseBoolConverter x:Key="InverseBoolConverter"/>
+    </Application.Resources>
+</Application>

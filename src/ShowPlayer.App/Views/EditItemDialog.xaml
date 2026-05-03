@@ -1,0 +1,57 @@
+<Window x:Class="ShowPlayer.App.Views.EditItemDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="编辑播放项" Width="500" Height="350"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="文件路径:" VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" x:Name="FilePathBox" IsReadOnly="True" Background="#F5F5F5"/>
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="文件类型:" VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" x:Name="TypeBox" IsReadOnly="True" Background="#F5F5F5"/>
+        </Grid>
+
+        <Grid Grid.Row="2" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="背景音乐:" VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1" x:Name="MusicPathBox" IsReadOnly="True" Background="#F5F5F5" Margin="0,0,5,0"/>
+            <Button Grid.Column="2" Content="选择..." Width="70" Click="OnSelectMusic" Height="24"/>
+        </Grid>
+
+        <CheckBox Grid.Row="3" x:Name="MusicLoopCheck" Content="音乐循环播放" Margin="80,0,0,8"/>
+        <CheckBox Grid.Row="4" x:Name="VideoLoopCheck" Content="视频循环播放" Margin="80,0,0,8"/>
+        <CheckBox Grid.Row="5" x:Name="ClearMusicCheck" Content="清除背景音乐" Margin="80,0,0,8"/>
+
+        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="确定" Width="80" Height="30" Click="OnOk" Margin="0,0,8,0" IsDefault="True"/>
+            <Button Content="取消" Width="80" Height="30" Click="OnCancel" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
